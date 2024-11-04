@@ -1,0 +1,140 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <stdbool.h>
+
+#define MAX_VERTICES 1000
+
+typedef struct {
+    int items[MAX_VERTICES];
+    int head, tail;
+} Queue;
+
+void initQueue(Queue* q) {
+    q->head = -1;
+    q->tail = -1;
+}
+
+int isEmpty(Queue* q) {
+    return q->head == -1;
+}
+
+void push(Queue* q, int value) {
+    if (q->tail == MAX_VERTICES - 1) {
+        printf("Очередь переполнена!\n");
+        return;
+    }
+    if (q->head == -1) {
+        q->head = 0;
+    }
+    q->tail++;
+    q->items[q->tail] = value;
+}
+
+int pop(Queue* q) {
+    if (isEmpty(q)) {
+        printf("Очередь пуста!\n");
+        return -1;
+    }
+    int item = q->items[q->head];
+    if (q->head >= q->tail) {
+        q->head = q->tail = -1; // Сброс очереди
+    } else {
+        q->head++;
+    }
+    return item;
+}
+
+void generate_adjacency_matrix(int n, int matrix[MAX_VERTICES][MAX_VERTICES]) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            matrix[i][j] = 0; 
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            int edge = rand() % 2; 
+            matrix[i][j] = edge;   
+            matrix[j][i] = edge;   
+        }
+    }
+}
+
+void bfs_standard_queue(int matrix[MAX_VERTICES][MAX_VERTICES], int n, int start_vertex) {
+    bool visited[MAX_VERTICES] = {false};
+    int queue[MAX_VERTICES];
+    int head = 0, tail = 0;
+
+    visited[start_vertex] = true;
+    queue[tail++] = start_vertex;
+
+    //printf("BFS обход начиная с вершины %d: ", start_vertex);
+
+    while (head < tail) {
+        int vertex = queue[head++];
+        //printf("%d ", vertex);
+
+        for (int i = 0; i < n; i++) {
+            if (matrix[vertex][i] == 1 && !visited[i]) {
+                visited[i] = true;
+                queue[tail++] = i;
+            }
+        }
+    }
+    printf("\n");
+}
+
+void bfs_custom_queue(int matrix[MAX_VERTICES][MAX_VERTICES], int n, int start_vertex) {
+    int visited[MAX_VERTICES] = {0};
+    Queue q;
+    initQueue(&q);
+
+    visited[start_vertex] = 1;
+    push(&q, start_vertex);
+
+   // printf("Обход в ширину начиная с вершины %d: ", start_vertex);
+
+    while (!isEmpty(&q)) {
+        int vertex = pop(&q);
+        //printf("%d ", vertex);
+
+        for (int i = 0; i < n; i++) {
+            if (matrix[vertex][i] == 1 && !visited[i]) {
+                visited[i] = 1;
+                push(&q, i);
+            }
+        }
+    }
+    printf("\n");
+}
+
+void measure_time(int n) {
+    int matrix[MAX_VERTICES][MAX_VERTICES];
+    generate_adjacency_matrix(n, matrix);
+
+    int start_vertex = 0; // начальный узел
+
+    // Время для стандартной очереди
+    clock_t start = clock();
+    bfs_standard_queue(matrix, n, start_vertex);
+    clock_t end = clock();
+    double time_taken_standard = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+    // Время для самодельной очереди
+    start = clock();
+    bfs_custom_queue(matrix, n, start_vertex);
+    end = clock();
+    double time_taken_custom = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+    printf("Размер графа: %d, Время стандартной очереди: %f, Время самодельной очереди: %f\n", n, time_taken_standard, time_taken_custom);
+}
+
+int main() {
+    srand(time(NULL)); // Инициализация генератора случайных чисел
+    for (int n = 10; n <= 1000; n += 100) {
+        measure_time(n);
+    }
+    return 0;
+}
+
