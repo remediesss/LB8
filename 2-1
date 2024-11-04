@@ -1,0 +1,119 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define MAX_VERTICES 100
+
+typedef struct {
+    int items[MAX_VERTICES];
+    int head, tail;
+} Queue;
+
+void initQueue(Queue* q) {
+    q->head = -1;
+    q->tail = -1;
+}
+
+int isEmpty(Queue* q) {
+    return q->head == -1;
+}
+
+void push(Queue* q, int value) {
+    if (q->tail == MAX_VERTICES - 1) {
+        printf("Очередь переполнена!\n");
+        return;
+    }
+    if (q->head == -1) {
+        q->head = 0;
+    }
+    q->tail++;
+    q->items[q->tail] = value;
+}
+
+int pop(Queue* q) {
+    if (isEmpty(q)) {
+        printf("Очередь пуста!\n");
+        return -1;
+    }
+    int item = q->items[q->head];
+    if (q->head >= q->tail) {
+        q->head = q->tail = -1; // Сброс очереди
+    } else {
+        q->head++;
+    }
+    return item;
+}
+
+void generate_adjacency_matrix(int n, int matrix[MAX_VERTICES][MAX_VERTICES]) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            matrix[i][j] = 0; 
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            int edge = rand() % 2; 
+            matrix[i][j] = edge;   
+            matrix[j][i] = edge;   
+        }
+    }
+}
+
+void bfs(int matrix[MAX_VERTICES][MAX_VERTICES], int n, int start_vertex) {
+    int visited[MAX_VERTICES] = {0};
+    Queue q;
+    initQueue(&q);
+
+    visited[start_vertex] = 1;
+    push(&q, start_vertex);
+
+    printf("обход в ширину начиная с вершины %d: ", start_vertex);
+
+    while (!isEmpty(&q)) {
+        int vertex = pop(&q);
+        printf("%d ", vertex);
+
+        for (int i = 0; i < n; i++) {
+            if (matrix[vertex][i] == 1 && !visited[i]) {
+                visited[i] = 1;
+                push(&q, i);
+            }
+        }
+    }
+    printf("\n");
+}
+
+int main() {
+    int n; 
+    
+    while(1) {
+        printf("Введите размер матрицы: ");
+        scanf("%d", &n);
+        
+        if (n <= 0) {
+            break;
+        }
+        
+        int matrix[MAX_VERTICES][MAX_VERTICES];
+    
+        srand(time(NULL));
+    
+        generate_adjacency_matrix(n, matrix);
+    
+        printf("Adjacency Matrix:\n");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                printf("%d ", matrix[i][j]);
+            }
+            printf("\n");
+        }
+    
+        int start_vertex;
+        printf("Введите стартовую вершину для BFS (0 до %d): ", n-1);
+        scanf("%d", &start_vertex);
+        bfs(matrix, n, start_vertex);
+        printf("\n\n");
+    }
+    return 0;
+}
