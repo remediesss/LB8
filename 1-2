@@ -1,0 +1,80 @@
+#include <iostream>
+#include <queue>
+#include <cstdlib>
+#include <ctime>
+
+#define MAX_VERTICES 100
+
+void generate_adjacency_matrix(int n, int matrix[MAX_VERTICES][MAX_VERTICES]) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            matrix[i][j] = 0; 
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            int edge = rand() % 2; 
+            matrix[i][j] = edge;   
+            matrix[j][i] = edge;   
+        }
+    }
+}
+
+void bfs(int matrix[MAX_VERTICES][MAX_VERTICES], int n, int start_vertex) {
+    bool visited[MAX_VERTICES] = {false};
+    std::queue<int> q;
+
+    visited[start_vertex] = true;
+    q.push(start_vertex);
+
+    std::cout << "BFS обход начиная с вершины " << start_vertex << ": ";
+
+    while (!q.empty()) {
+        int vertex = q.front();
+        q.pop();
+        std::cout << vertex << " ";
+
+        for (int i = 0; i < n; i++) {
+            if (matrix[vertex][i] == 1 && !visited[i]) {
+                visited[i] = true;
+                q.push(i);
+            }
+        }
+    }
+    std::cout << std::endl;
+}
+
+int main() {
+    int n; 
+    
+    while(1) {
+        std::cout << "Введите размер матрицы: ";
+        std::cin >> n;
+        
+        if (n <= 0) {
+            break;
+        }
+        
+        int matrix[MAX_VERTICES][MAX_VERTICES];
+    
+        srand((time(NULL)));
+    
+        generate_adjacency_matrix(n, matrix);
+    
+        std::cout << "Adjacency Matrix:\n";
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                std::cout << matrix[i][j] << " ";
+            }
+            std::cout << "\n";
+        }
+    
+        int start_vertex;
+        std::cout << "Введите стартовую вершину для BFS (0 до " << n-1 << "): ";
+        std::cin >> start_vertex;
+        bfs(matrix, n, start_vertex);
+        std::cout << "\n\n";
+    }
+    return 0;
+}
